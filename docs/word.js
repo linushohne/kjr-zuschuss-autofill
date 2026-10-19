@@ -1,5 +1,5 @@
 import { unzipSync, zipSync, strFromU8, strToU8 } from './vendor/fflate.js';
-import { ageAt, comparePeople, duplicatePeople, formatAddress, formatDate, personIssues, validDate } from './data.js';
+import { ageAt, comparePeople, duplicatePeople, eligibleForList, formatAddress, formatDate, personIssues, validDate } from './data.js';
 
 const wordNamespace = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const xmlNamespace = 'http://www.w3.org/XML/1998/namespace';
@@ -60,7 +60,7 @@ function setField(container, value, fieldName) {
   }
 }
 
-function prepareTable(table, people, start, rowCount) {
+function prepareTable(table, people, start, rowCount, supervisors = false) {
   const rows = children(table, 'tr');
   const header = rows[0];
   const sample = rows[1].cloneNode(true);
@@ -73,46 +73,62 @@ function prepareTable(table, people, start, rowCount) {
     let properties = children(row, 'trPr')[0];
     if (!properties) properties = row.insertBefore(table.ownerDocument.createElementNS(wordNamespace, 'w:trPr'), row.firstChild);
     addProperty(properties, 'cantSplit');
+    for (const height of children(properties, 'trHeight')) height.setAttributeNS(wordNamespace, 'w:hRule', 'atLeast');
     const person = people[index];
     const number = index + 1;
     const values = person
-      ? [String(number), `${person.last}, ${person.first}`, formatAddress(person.address), 'X', '', '', String(ageAt(person.birthday, start)), '']
-      : Array(8).fill('');
+      ? supervisors
+        ? [String(number), `${person.last}, ${person.first}`, formatAddress(person.address), '', '', String(ageAt(person.birthday, start)), '']
+        : [String(number), `${person.last}, ${person.first}`, formatAddress(person.address), 'X', '', '', String(ageAt(person.birthday, start)), '']
+      : Array(supervisors ? 7 : 8).fill('');
     for (const [cellIndex, cell] of children(row, 'tc').entries()) {
-      setField(cell, values[cellIndex], `person_${number}_${cellIndex}`);
+      const paragraphs = descendants(cell, 'p').filter(paragraph => descendants(paragraph, 'ffData').length);
+      for (const [fieldIndex, paragraph] of paragraphs.entries()) {
+        if (supervisors && paragraphs.length > 1) {
+          for (const spacing of descendants(paragraph, 'spacing')) {
+            spacing.setAttributeNS(wordNamespace, 'w:before', '0');
+            spacing.setAttributeNS(wordNamespace, 'w:after', '0');
+          }
+        }
+        setField(paragraph, fieldIndex === 0 ? values[cellIndex] : '', `person_${number}_${cellIndex}${fieldIndex ? `_${fieldIndex}` : ''}`);
+      }
     }
     table.appendChild(row);
   }
 }
 
 export function createWord(template, people, trip, xml = { DOMParser, XMLSerializer }) {
+  const kind = trip.kind || 'participants';
+  if (!['participants', 'supervisors'].includes(kind)) throw new Error('Unbekannte Listenart.');
   if (!validDate(trip.start)) throw new Error('Bitte einen gültigen Fahrtbeginn eintragen.');
   if (trip.end && (!validDate(trip.end) || trip.end < trip.start)) throw new Error('Das Fahrtende darf nicht vor dem Fahrtbeginn liegen.');
   if (!people.length) throw new Error('Bitte mindestens eine Person auswählen.');
   if (people.some(person => personIssues(person, trip.start).length)) throw new Error('Bitte die fehlenden oder ungültigen Angaben der ausgewählten Personen ergänzen.');
+  if (people.some(person => !eligibleForList(person, trip.start, kind))) throw new Error('Betreuer müssen zum Fahrtbeginn mindestens 18 Jahre alt sein.');
   if (duplicatePeople(people)) throw new Error('Eine Person ist doppelt ausgewählt. Bitte die Auswahl prüfen.');
   const selected = [...people].sort(comparePeople);
   const files = unzipSync(new Uint8Array(template));
   const document = new xml.DOMParser().parseFromString(strFromU8(files['word/document.xml']), 'application/xml');
   const body = descendants(document, 'body')[0];
   const tables = children(body, 'tbl');
-  if (tables.length !== 5) throw new Error('Die Word-Vorlage hat ein unerwartetes Format.');
-  const tripFields = descendants(tables[1], 'tc').filter(cell => descendants(cell, 'ffData').length);
+  const supervisors = kind === 'supervisors';
+  if (tables.length !== (supervisors ? 2 : 5)) throw new Error('Die Word-Vorlage hat ein unerwartetes Format.');
+  const tripFields = descendants(tables[supervisors ? 0 : 1], 'tc').filter(cell => descendants(cell, 'ffData').length);
   const dates = trip.end ? `${formatDate(trip.start)} – ${formatDate(trip.end)}` : `${formatDate(trip.start)} –`;
   for (const [index, value] of [trip.title || '', trip.location || '', dates].entries()) {
     setField(tripFields[index], value, ['fahrt_titel', 'fahrt_ort', 'fahrt_zeitraum'][index]);
   }
-  const firstTable = tables[3];
-  const firstRows = children(firstTable, 'tr').length - 1;
-  const continuationRows = children(tables[4], 'tr').length - 1;
+  const firstTable = tables[supervisors ? 1 : 3];
+  const firstRows = supervisors ? 5 : children(firstTable, 'tr').length - 1;
+  const continuationRows = supervisors ? 10 : children(tables[4], 'tr').length - 1;
   const rowCount = firstRows + Math.max(1, Math.ceil(Math.max(0, selected.length - firstRows) / continuationRows)) * continuationRows;
   let next = firstTable.nextSibling;
-  while (next && !(next.nodeType === 1 && next.localName === 'sectPr')) {
+  while (!supervisors && next && !(next.nodeType === 1 && next.localName === 'sectPr')) {
     const following = next.nextSibling;
     body.removeChild(next);
     next = following;
   }
-  prepareTable(firstTable, selected, trip.start, rowCount);
+  prepareTable(firstTable, selected, trip.start, rowCount, supervisors);
   const trailing = document.createElementNS(wordNamespace, 'w:p');
   const trailingProperties = addProperty(trailing, 'pPr');
   const trailingSpacing = addProperty(trailingProperties, 'spacing');

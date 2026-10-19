@@ -27,4 +27,4 @@ for (const [name, bytes] of Object.entries(files)) {
   }
   files[name] = strToU8(serializer.serializeToString(document));
 }
-await writeFile('docs/teilnehmerliste.docx', zipSync(files));
+await writeFile(process.argv[3] || 'docs/teilnehmerliste.docx', zipSync(files));

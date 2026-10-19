@@ -7,6 +7,9 @@ h1 { margin: 0; font-size: 24px; font-weight: 650; letter-spacing: -0.6px; }
 h2 { margin: 0 0 22px; font-size: 18px; }
 .local, #filename, .download-hint { color: #646b64; font-size: 13px; }
 .setup { border: 1px solid #dce0d9; padding: 22px; background: #fff; border-radius: 6px; }
+.list-kind { display: flex; flex-wrap: wrap; gap: 8px 20px; border: 0; padding: 0; margin: 0 0 22px; }
+.list-kind label { flex-direction: row; align-items: center; gap: 7px; font-size: 14px; cursor: pointer; }
+.list-kind input { min-height: 0; margin: 0; accent-color: #28513a; }
 .file-row { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
 #filename { overflow-wrap: anywhere; }
 .file-input { position: absolute; width: 1px; height: 1px; opacity: 0; }

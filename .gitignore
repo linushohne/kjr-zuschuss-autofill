@@ -9,6 +9,7 @@ dist/
 *.csv
 *.docx
 !docs/teilnehmerliste.docx
+!docs/betreuerliste.docx
 *.pdf
 private/
 outputs/

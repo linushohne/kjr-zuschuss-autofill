@@ -17,6 +17,10 @@
       </header>
 
       <section class="setup" aria-label="Datei und Fahrt">
+        <fieldset class="list-kind" aria-label="Listenart">
+          <label><input type="radio" name="kind" value="participants" checked>Teilnehmerliste</label>
+          <label><input type="radio" name="kind" value="supervisors">Betreuerliste</label>
+        </fieldset>
         <div class="file-row">
           <label class="file-button" for="file">Excel auswählen</label>
           <input id="file" class="file-input" type="file" accept=".xlsx,.xls">

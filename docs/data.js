@@ -35,6 +35,10 @@ export function ageAt(birthday, start) {
   return startYear - birthYear - Number(startMonth < birthMonth || (startMonth === birthMonth && startDay < birthDay));
 }
 
+export function eligibleForList(person, start, kind = 'participants') {
+  return kind === 'participants' || (kind === 'supervisors' && ageAt(person.birthday, start) >= 18);
+}
+
 export function formatDate(value) {
   return validDate(value) ? value.split('-').reverse().join('.') : '';
 }

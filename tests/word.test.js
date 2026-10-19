@@ -9,6 +9,7 @@ import { fixturePeople } from '../scripts/qa-fixtures.mjs';
 const xml = { DOMParser, XMLSerializer };
 const namespace = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const template = new Uint8Array(await readFile(new URL('../docs/teilnehmerliste.docx', import.meta.url)));
+const supervisorTemplate = new Uint8Array(await readFile(new URL('../docs/betreuerliste.docx', import.meta.url)));
 const trip = { start: '2026-10-19', title: '', location: '', end: '' };
 const descendants = (node, name) => Array.from(node.getElementsByTagNameNS(namespace, name));
 
@@ -88,13 +89,61 @@ test('Ungültige Exporte werden blockiert', () => {
   assert.throws(() => createWord(template, [fixturePeople(1)[0], fixturePeople(1)[0]], trip, xml), /doppelt/);
 });
 
-test('Öffentliche Vorlage enthält keine externen Beziehungen oder Autorenmetadaten', () => {
-  const files = unzipSync(template);
-  for (const [name, bytes] of Object.entries(files)) {
-    if (name.endsWith('.rels')) assert.equal(strFromU8(bytes).includes('TargetMode="External"'), false);
-    if (name.startsWith('docProps/')) {
-      const document = new DOMParser().parseFromString(strFromU8(bytes), 'application/xml');
-      assert.equal(document.documentElement.childNodes.length, 0);
+for (const count of [1, 6, 16]) {
+  test(`Betreuerliste mit ${count} Volljährigen und leeren Zusatzfeldern`, async () => {
+    const people = fixturePeople(count).map(person => ({ ...person, birthday: '2008-10-19' }));
+    const output = createWord(supervisorTemplate, people, { ...trip, kind: 'supervisors', title: 'Herbst & Lager', location: 'München', end: '2026-10-22' }, xml);
+    const files = unzipSync(output);
+    const document = new DOMParser().parseFromString(strFromU8(files['word/document.xml']), 'application/xml');
+    const tables = descendants(document, 'tbl');
+    assert.equal(tables.length, 2);
+    const rows = descendants(tables[1], 'tr');
+    const rowCount = 5 + Math.max(1, Math.ceil(Math.max(0, count - 5) / 10)) * 10;
+    assert.equal(rows.length, rowCount + 1);
+    const fields = descendants(document, 'ffData');
+    const names = fields.map(field => descendants(field, 'name')[0].getAttributeNS(namespace, 'val'));
+    assert.equal(new Set(names).size, names.length);
+    const fieldValue = name => descendants(fields.find(field => descendants(field, 'name')[0].getAttributeNS(namespace, 'val') === name), 'default')[0].getAttributeNS(namespace, 'val');
+    assert.equal(fieldValue('fahrt_titel'), 'Herbst & Lager');
+    assert.equal(fieldValue('fahrt_ort'), 'München');
+    assert.equal(fieldValue('fahrt_zeitraum'), '19.10.2026 – 22.10.2026');
+    assert.equal(fieldValue('person_1_1'), 'Beispiel 01, Änne & Ömer');
+    assert.equal(fieldValue(`person_${count}_0`), String(count));
+    for (let number = 1; number <= rowCount; number += 1) {
+      assert.equal(fieldValue(`person_${number}_3`), '');
+      assert.equal(fieldValue(`person_${number}_3_1`), '');
+      assert.equal(fieldValue(`person_${number}_4`), '');
+      assert.equal(fieldValue(`person_${number}_5`), number <= count ? '18' : '');
+      assert.equal(descendants(descendants(rows[number], 'tc')[6], 't').map(node => node.textContent).join('').trim(), '');
+      if (number > count) assert.equal(descendants(rows[number], 't').map(node => node.textContent).join('').trim(), '');
     }
-  }
+    assert.equal(descendants(document, 'tblHeader').length, 1);
+    assert.equal(descendants(document, 'trHeight').some(node => node.getAttributeNS(namespace, 'hRule') === 'exact'), false);
+    const text = descendants(document, 't').map(node => node.textContent).join(' ');
+    assert.match(text, /Betreu/);
+    assert.match(text, /Einsichtnahmeverfahren/);
+    assert.equal(text.includes('X'), false);
+    await mkdir('/tmp/kjr-qa', { recursive: true });
+    await writeFile(`/tmp/kjr-qa/betreuer-${count}.docx`, output);
+  });
+}
+
+test('Minderjährige und unpassende Vorlagen werden für Betreuer blockiert', () => {
+  assert.throws(() => createWord(supervisorTemplate, fixturePeople(1), { ...trip, kind: 'supervisors' }, xml), /mindestens 18/);
+  const adult = { ...fixturePeople(1)[0], birthday: '2008-10-19' };
+  assert.throws(() => createWord(template, [adult], { ...trip, kind: 'supervisors' }, xml), /Vorlage/);
+  assert.throws(() => createWord(supervisorTemplate, [adult], trip, xml), /Vorlage/);
 });
+
+for (const [name, source] of [['Teilnehmer', template], ['Betreuer', supervisorTemplate]]) {
+  test(`${name}-Vorlage enthält keine externen Beziehungen oder Autorenmetadaten`, () => {
+    const files = unzipSync(source);
+    for (const [name, bytes] of Object.entries(files)) {
+      if (name.endsWith('.rels')) assert.equal(strFromU8(bytes).includes('TargetMode="External"'), false);
+      if (name.startsWith('docProps/')) {
+        const document = new DOMParser().parseFromString(strFromU8(bytes), 'application/xml');
+        assert.equal(document.documentElement.childNodes.length, 0);
+      }
+    }
+  });
+}

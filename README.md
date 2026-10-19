@@ -12,8 +12,10 @@ Die Anwendung läuft auf [GitHub Pages](https://linushohne.github.io/kjr-zuschus
 - Inaktive Mitglieder sind standardmäßig ausgeblendet. Unbekannte oder leere Aktiv-Werte gelten als aktiv.
 - Fehlende Namen, Geburtstage und Adressen lassen sich für den aktuellen Export bearbeiten. Die Quelldatei bleibt unverändert.
 - Alter zum verpflichtenden Fahrtbeginn; Titel, Ort und Fahrtende sind optional.
+- Umschaltung zwischen Teilnehmer- und Betreuerliste. Betreuer werden ab 18 Jahren zum Fahrtbeginn angezeigt; ein Listenwechsel leert die Auswahl.
 - Alphabetische Reihenfolge, fortlaufende Nummerierung und „X“ im Stadt-Kästchen.
 - Word-Export anhand der Originalvorlage, mit erhaltenen `FORMTEXT`-Feldern und leeren Unterschriftenfeldern.
+- Eigene Betreuer-Vorlage; Juleica-Nummer, Gültigkeit und Führungszeugnis-ID bleiben zum nachträglichen Ausfüllen leer.
 - Automatische Seitenumbrüche mit wiederholtem Tabellenkopf; Teilnehmerzeilen werden möglichst nicht geteilt.
 - Mindestens zwei Seiten mit leeren Formularzeilen unter den eingetragenen Personen.
 
@@ -47,6 +49,6 @@ Anschließend `http://127.0.0.1:4173` öffnen. Die Anwendung muss über HTTP lau
 - fflate 0.8.3 (`docs/vendor/fflate.js`, MIT).
 - Lizenztexte liegen unter `docs/vendor/`. Beide Bibliotheken werden lokal ausgeliefert.
 - `npm run vendor` erneuert die gebündelten Bibliotheken aus den festgelegten Versionen.
-- `docs/teilnehmerliste.docx` ist die leere, bereitgestellte Originalvorlage. Autorenmetadaten und die externe Verknüpfung eines bereits eingebetteten Logos wurden entfernt. Logos, Formatierung und Formularfelder bleiben erhalten.
+- `docs/teilnehmerliste.docx` und `docs/betreuerliste.docx` sind die leeren, bereitgestellten Originalvorlagen. Autorenmetadaten und externe Verknüpfungen wurden entfernt. Logos, Formatierung und Formularfelder bleiben erhalten.
 
-Eine Ersatzvorlage kann mit `node scripts/prepare-template.mjs /pfad/zur/leeren-vorlage.docx` bereinigt werden. Vor Veröffentlichung Inhalt und Metadaten prüfen; eine andere Formularstruktur erfordert eine Anpassung von `docs/word.js` und neue Layoutprüfungen.
+Eine Ersatzvorlage kann mit `node scripts/prepare-template.mjs /pfad/zur/leeren-vorlage.docx docs/teilnehmerliste.docx` bereinigt werden. Das zweite Argument bestimmt die Zieldatei. Vor Veröffentlichung Inhalt und Metadaten prüfen; eine andere Formularstruktur erfordert eine Anpassung von `docs/word.js` und neue Layoutprüfungen.

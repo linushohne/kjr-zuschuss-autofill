@@ -1,4 +1,4 @@
-import { ageAt, comparePeople, duplicatePeople, formatAddress, normalize, personIssues, readWorkbook, validDate } from './data.js';
+import { ageAt, comparePeople, duplicatePeople, eligibleForList, formatAddress, normalize, personIssues, readWorkbook, validDate } from './data.js';
 import { createWord } from './word.js';
 
 const element = id => document.getElementById(id);
@@ -10,7 +10,7 @@ let revision = 0;
 let exporting = false;
 
 function trip() {
-  return Object.fromEntries(['start', 'end', 'title', 'location'].map(key => [key, element(key).value.trim()]));
+  return { ...Object.fromEntries(['start', 'end', 'title', 'location'].map(key => [key, element(key).value.trim()])), kind: document.querySelector('input[name="kind"]:checked').value };
 }
 
 function error(message = '') {
@@ -25,7 +25,8 @@ function optionList(select, values, first) {
 }
 
 function selectedPeople() {
-  return people.filter(person => selected.has(person.id));
+  const values = trip();
+  return people.filter(person => selected.has(person.id) && eligibleForList(person, values.start, values.kind));
 }
 
 function updateDownload() {
@@ -58,7 +59,12 @@ function openEditor(person) {
 
 function render() {
   const query = normalize(element('search').value);
+  const values = trip();
+  for (const person of people) {
+    if (!eligibleForList(person, values.start, values.kind)) selected.delete(person.id);
+  }
   visible = people.filter(person =>
+    eligibleForList(person, values.start, values.kind) &&
     (!element('active').checked || person.active) &&
     (!element('group').value || person.group === element('group').value) &&
     (!element('level').value || person.level === element('level').value) &&
@@ -172,7 +178,17 @@ element('reset').addEventListener('click', () => {
   document.querySelector('details').open = false;
 });
 
-for (const id of ['search', 'group', 'level', 'active', 'start']) element(id).addEventListener('input', render);
+for (const input of document.querySelectorAll('input[name="kind"]')) input.addEventListener('change', () => {
+  revision += 1;
+  selected.clear();
+  error();
+  render();
+});
+element('start').addEventListener('input', () => {
+  revision += 1;
+  render();
+});
+for (const id of ['search', 'group', 'level', 'active']) element(id).addEventListener('input', render);
 element('end').addEventListener('input', updateDownload);
 element('select-all').addEventListener('change', event => {
   for (const person of visible) {
@@ -211,7 +227,8 @@ element('download').addEventListener('click', async () => {
   exporting = true;
   updateDownload();
   try {
-    const response = await fetch('./teilnehmerliste.docx');
+    const supervisorList = values.kind === 'supervisors';
+    const response = await fetch(supervisorList ? './betreuerliste.docx' : './teilnehmerliste.docx');
     if (!response.ok) throw new Error('Die Word-Vorlage konnte nicht geladen werden. Bitte erneut versuchen.');
     const template = await response.arrayBuffer();
     if (currentRevision !== revision) return;
@@ -219,7 +236,7 @@ element('download').addEventListener('click', async () => {
     const url = URL.createObjectURL(new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }));
     const link = document.createElement('a');
     link.href = url;
-    link.download = `Teilnehmerliste_${values.start}.docx`;
+    link.download = `${supervisorList ? 'Betreuerliste' : 'Teilnehmerliste'}_${values.start}.docx`;
     document.body.appendChild(link);
     link.click();
     link.remove();

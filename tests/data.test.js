@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as XLSX from '../docs/vendor/xlsx.mjs';
-import { ageAt, duplicatePeople, formatAddress, isActive, normalize, parseBirthday, parseSheet, personIssues, readWorkbook, validDate } from '../docs/data.js';
+import { ageAt, duplicatePeople, eligibleForList, formatAddress, isActive, normalize, parseBirthday, parseSheet, personIssues, readWorkbook, validDate } from '../docs/data.js';
 import { fixturePeople, fixtureWorkbook } from '../scripts/qa-fixtures.mjs';
 
 test('Alter vor, am und nach Geburtstag', () => {
@@ -10,6 +10,16 @@ test('Alter vor, am und nach Geburtstag', () => {
   assert.equal(ageAt('2014-10-20', '2026-10-21'), 12);
   assert.equal(ageAt('2027-01-01', '2026-10-19'), -1);
   assert.equal(ageAt('', '2026-10-19'), null);
+});
+
+test('Betreuer sind ab dem 18. Geburtstag zum Fahrtbeginn sichtbar', () => {
+  const person = { birthday: '2008-10-19' };
+  assert.equal(eligibleForList(person, '2026-10-18', 'supervisors'), false);
+  assert.equal(eligibleForList(person, '2026-10-19', 'supervisors'), true);
+  assert.equal(eligibleForList(person, '2026-10-20', 'supervisors'), true);
+  assert.equal(eligibleForList(person, '', 'supervisors'), false);
+  assert.equal(eligibleForList({ birthday: '' }, '2026-10-19', 'supervisors'), false);
+  assert.equal(eligibleForList({ birthday: '2014-10-19' }, '2026-10-19', 'participants'), true);
 });
 
 test('Geburtstage mit Schaltjahr und ungültige Datumswerte', () => {
