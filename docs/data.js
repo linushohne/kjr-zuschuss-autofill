@@ -110,17 +110,10 @@ export function readWorkbook(buffer) {
     } });
   }
   const workbook = XLSX.read(bytes, { type: 'array', cellDates: false, cellHTML: false, cellFormula: false, bookVBA: false });
-  const sheets = [];
   if (workbook.SheetNames.length > 100) throw new Error('Die Datei enthält zu viele Tabellenblätter.');
-  for (const name of workbook.SheetNames) {
-    try {
-      sheets.push({ name, people: parseSheet(workbook.Sheets[name], name, Boolean(workbook.Workbook?.WBProps?.date1904)) });
-    } catch (error) {
-      sheets.push({ name, people: [], error: error.message });
-    }
-  }
-  if (!sheets.some(sheet => !sheet.error)) throw new Error('Keine Mitgliederliste gefunden. Benötigt werden die Spalten „Vorname“ und „Nachname“.');
-  return sheets;
+  const name = workbook.SheetNames.find(name => name.trim().toLowerCase() === 'stamm');
+  if (!name) throw new Error('Das Tabellenblatt „Stamm“ fehlt.');
+  return [{ name, people: parseSheet(workbook.Sheets[name], name, Boolean(workbook.Workbook?.WBProps?.date1904)) }];
 }
 
 export function personIssues(person, start) {

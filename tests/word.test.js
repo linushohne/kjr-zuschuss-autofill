@@ -18,7 +18,7 @@ for (const count of [1, 5, 6, 14, 15, 16, 25, 26]) {
     const files = unzipSync(output);
     const document = new DOMParser().parseFromString(strFromU8(files['word/document.xml']), 'application/xml');
     assert.equal(descendants(document, 'tbl').length, 4);
-    const rowCount = 5 + Math.ceil(Math.max(0, count - 5) / 10) * 10;
+    const rowCount = 5 + Math.max(1, Math.ceil(Math.max(0, count - 5) / 10)) * 10;
     const rows = descendants(descendants(document, 'tbl')[3], 'tr');
     assert.equal(rows.length, rowCount + 1);
     const fields = descendants(document, 'ffData');

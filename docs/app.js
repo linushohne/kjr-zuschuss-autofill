@@ -2,7 +2,6 @@ import { ageAt, comparePeople, duplicatePeople, formatAddress, normalize, person
 import { createWord } from './word.js';
 
 const element = id => document.getElementById(id);
-let sheets = [];
 let people = [];
 let selected = new Set();
 let visible = [];
@@ -113,20 +112,17 @@ function render() {
   updateDownload();
 }
 
-function chooseSheet() {
+function initializePeople() {
   selected.clear();
-  people = sheets.find(sheet => sheet.name === element('sheet').value)?.people || [];
   element('search').value = '';
   const unique = key => [...new Set(people.map(person => person[key]).filter(Boolean))].sort((left, right) => left.localeCompare(right, 'de'));
   optionList(element('group'), unique('group'), 'Alle');
   optionList(element('level'), unique('level'), 'Alle');
-  const sheetError = sheets.find(sheet => sheet.name === element('sheet').value)?.error;
-  error(sheetError || '');
+  error();
   render();
 }
 
 function clearData() {
-  sheets = [];
   people = [];
   visible = [];
   selected = new Set();
@@ -135,7 +131,6 @@ function clearData() {
   element('people').hidden = true;
   element('reset').hidden = true;
   element('rows').replaceChildren();
-  element('sheet').replaceChildren();
   element('group').replaceChildren();
   element('level').replaceChildren();
   element('status').textContent = '';
@@ -156,14 +151,12 @@ element('file').addEventListener('change', async event => {
     if (file.size > 10 * 1024 * 1024) throw new Error('Bitte eine Datei unter 10 MB auswählen.');
     const buffer = await file.arrayBuffer();
     if (currentRevision !== revision) return;
-    sheets = readWorkbook(buffer);
-    optionList(element('sheet'), sheets.map(sheet => sheet.name));
-    element('sheet').value = sheets.find(sheet => normalize(sheet.name) === 'stamm' && !sheet.error)?.name || sheets.find(sheet => !sheet.error).name;
+    people = readWorkbook(buffer)[0].people;
     element('filename').textContent = file.name;
     element('people').hidden = false;
     element('reset').hidden = false;
     element('status').textContent = '';
-    chooseSheet();
+    initializePeople();
   } catch (reason) {
     if (currentRevision !== revision) return;
     clearData();
@@ -179,7 +172,6 @@ element('reset').addEventListener('click', () => {
   document.querySelector('details').open = false;
 });
 
-element('sheet').addEventListener('change', chooseSheet);
 for (const id of ['search', 'group', 'level', 'active', 'start']) element(id).addEventListener('input', render);
 element('end').addEventListener('input', updateDownload);
 element('select-all').addEventListener('change', event => {

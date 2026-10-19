@@ -6,7 +6,7 @@ Die Anwendung läuft auf [GitHub Pages](https://linushohne.github.io/kjr-zuschus
 
 ## Funktionen
 
-- Excel-Import (`.xlsx` und `.xls`), standardmäßig aus dem Blatt „Stamm“.
+- Excel-Import (`.xlsx` und `.xls`), ausschließlich aus dem Blatt „Stamm“.
 - Erkennung der Spaltenüberschriften, auch bei unterschiedlicher Spaltenreihenfolge.
 - Suche, Filter nach Sippe und Stufe sowie Auswahl aller angezeigten Personen.
 - Inaktive Mitglieder sind standardmäßig ausgeblendet. Unbekannte oder leere Aktiv-Werte gelten als aktiv.
@@ -15,8 +15,9 @@ Die Anwendung läuft auf [GitHub Pages](https://linushohne.github.io/kjr-zuschus
 - Alphabetische Reihenfolge, fortlaufende Nummerierung und „X“ im Stadt-Kästchen.
 - Word-Export anhand der Originalvorlage, mit erhaltenen `FORMTEXT`-Feldern und leeren Unterschriftenfeldern.
 - Automatische Seitenumbrüche mit wiederholtem Tabellenkopf; Teilnehmerzeilen werden möglichst nicht geteilt.
+- Mindestens zwei Seiten mit leeren Formularzeilen unter den eingetragenen Personen.
 
-Es wird immer nur ein Tabellenblatt verwendet. Ein Blattwechsel leert die Auswahl, damit Gesamt- und Gruppenlisten nicht versehentlich gemischt werden. Exakt doppelte ausgewählte Datensätze blockieren den Export. Fehlende Angaben müssen vor dem Export ergänzt werden.
+Andere Tabellenblätter werden nicht übernommen. Fehlt „Stamm“, wird der Import abgebrochen. Exakt doppelte ausgewählte Datensätze blockieren den Export. Fehlende Angaben müssen vor dem Export ergänzt werden.
 
 ## Datenschutz
 

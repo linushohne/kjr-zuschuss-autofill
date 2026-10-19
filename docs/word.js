@@ -105,7 +105,7 @@ export function createWord(template, people, trip, xml = { DOMParser, XMLSeriali
   const firstTable = tables[3];
   const firstRows = children(firstTable, 'tr').length - 1;
   const continuationRows = children(tables[4], 'tr').length - 1;
-  const rowCount = firstRows + Math.ceil(Math.max(0, selected.length - firstRows) / continuationRows) * continuationRows;
+  const rowCount = firstRows + Math.max(1, Math.ceil(Math.max(0, selected.length - firstRows) / continuationRows)) * continuationRows;
   let next = firstTable.nextSibling;
   while (next && !(next.nodeType === 1 && next.localName === 'sectPr')) {
     const following = next.nextSibling;

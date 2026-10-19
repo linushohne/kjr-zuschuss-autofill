@@ -56,10 +56,21 @@ test('Nur benötigte Daten werden aus der Arbeitsmappe übernommen', () => {
   const sheets = readWorkbook(fixtureWorkbook());
   assert.equal(sheets[0].name, 'Stamm');
   assert.equal(sheets[0].people.length, 5);
-  assert.equal(sheets[1].people[0].address, 'Gruppenweg 1\n80331 München');
-  assert.match(sheets[2].error, /Spalten/);
+  assert.equal(sheets.length, 1);
+  assert.equal(JSON.stringify(sheets).includes('Gruppenweg'), false);
   assert.equal(JSON.stringify(sheets).includes('NICHT_EXPORTIEREN'), false);
   assert.equal(sheets[0].people.find(person => person.first === 'Carla').active, false);
+});
+
+test('Fehlendes oder ungültiges Stamm-Blatt führt nicht zum Import anderer Blätter', () => {
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([
+    ['Vorname', 'Nachname'], ['Anna', 'Muster'],
+  ]), 'Gruppe');
+  const buffer = () => XLSX.write(workbook, { type: 'array', bookType: 'xlsx' });
+  assert.throws(() => readWorkbook(buffer()), /„Stamm“ fehlt/);
+  XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([['Falsche Spalten']]), 'Stamm');
+  assert.throws(() => readWorkbook(buffer()), /Spalten/);
 });
 
 test('PLZ und Ort stehen auf einer eigenen Zeile', () => {
