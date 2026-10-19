@@ -1,40 +1,51 @@
 # KJR Zuschuss Autofill
 
-Browser-Tool zum Erstellen von Teilnehmerlisten für Pfadfinderfahrten aus einer vorhandenen Excel-Mitgliederliste.
+Excel auswählen, Teilnehmende markieren, Fahrtbeginn eintragen, Word-Liste herunterladen.
 
-## Status
+Die Anwendung läuft auf [GitHub Pages](https://linushohne.github.io/kjr-zuschuss-autofill/). Keine Anmeldung, kein Backend und kein Build-Schritt.
 
-Das Repository enthält zunächst das Projektgerüst und eine GitHub-Pages-Startseite. Excel-Import, Teilnehmerauswahl und Word-Export sind noch nicht implementiert.
+## Funktionen
 
-## Geplanter Ablauf
+- Excel-Import (`.xlsx` und `.xls`), standardmäßig aus dem Blatt „Stamm“.
+- Erkennung der Spaltenüberschriften, auch bei unterschiedlicher Spaltenreihenfolge.
+- Suche, Filter nach Sippe und Stufe sowie Auswahl aller angezeigten Personen.
+- Inaktive Mitglieder sind standardmäßig ausgeblendet. Unbekannte oder leere Aktiv-Werte gelten als aktiv.
+- Fehlende Namen, Geburtstage und Adressen lassen sich für den aktuellen Export bearbeiten. Die Quelldatei bleibt unverändert.
+- Alter zum verpflichtenden Fahrtbeginn; Titel, Ort und Fahrtende sind optional.
+- Alphabetische Reihenfolge, fortlaufende Nummerierung und „X“ im Stadt-Kästchen.
+- Word-Export anhand der Originalvorlage, mit erhaltenen `FORMTEXT`-Feldern und leeren Unterschriftenfeldern.
+- Automatische Seitenumbrüche mit wiederholtem Tabellenkopf; Teilnehmerzeilen werden möglichst nicht geteilt.
 
-1. Excel-Datei lokal im Browser auswählen.
-2. Das Blatt „Stamm“ als Standardquelle einlesen und Spalten anhand ihrer Überschriften erkennen.
-3. Kinder mit Suche und Filtern nach Sippe und Stufe auswählen.
-4. Das verpflichtende Startdatum der Fahrt angeben.
-5. Angaben prüfen und eine ausgefüllte Word-Datei herunterladen.
-
-## Fachliche Anforderungen
-
-- Alter aus Geburtstag und Startdatum berechnen, nicht aus der vorhandenen Excel-Altersspalte.
-- Titel, Veranstaltungsort und Enddatum sind optional und können später im Dokument ergänzt werden.
-- Im Landkreis-Feld immer „Stadt“ eintragen.
-- Originalvorlage und klassische Word-Formularfelder (`FORMTEXT`) möglichst erhalten und direkt befüllen.
-- Unterschriftenfelder frei lassen.
-- Fehlende Geburtstage oder Adressen vor dem Export anzeigen.
-- Zusätzliche Seiten für größere Gruppen und lange Adressen berücksichtigen und testen.
-- Keine ungeprüfte Zusammenführung von Gesamt- und Gruppenblättern; mögliche Dubletten vermeiden.
+Es wird immer nur ein Tabellenblatt verwendet. Ein Blattwechsel leert die Auswahl, damit Gesamt- und Gruppenlisten nicht versehentlich gemischt werden. Exakt doppelte ausgewählte Datensätze blockieren den Export. Fehlende Angaben müssen vor dem Export ergänzt werden.
 
 ## Datenschutz
 
-Die geplante Anwendung verarbeitet die ausgewählte Excel ausschließlich lokal im Browser. Es gibt kein Backend, kein Tracking und keine dauerhafte Speicherung personenbezogener Daten. Nur für die Liste benötigte Felder sollen übernommen werden; Gesundheitsdaten und Notfallkontakte sind nicht erforderlich.
+Datei und Personendaten werden ausschließlich im Browser verarbeitet. Nur Name, Geburtstag, Adresse, Sippe, Stufe und Aktiv-Status werden aus der gelesenen Arbeitsmappe übernommen. Es gibt keine Uploads, Analyse-Dienste, externen Laufzeit-Abhängigkeiten oder Speicherung in Local Storage. Zurücksetzen oder Neuladen verwirft die Daten aus der Anwendung. Bereits heruntergeladene Dateien bleiben auf dem Gerät.
 
-Echte Mitgliederlisten, ausgefüllte Dokumente und andere personenbezogene Testdaten gehören niemals in dieses Repository. Die `.gitignore` blockiert typische Daten- und Dokumentdateien vorsorglich. Dies ersetzt keine Prüfung vor jedem Commit. Entwicklung und Tests erfolgen mit künstlichen Daten. Eine später benötigte leere Formularvorlage muss vor Veröffentlichung einschließlich Metadaten geprüft werden.
+GitHub liefert die statischen Anwendungsdateien aus und erhält dabei die üblichen Seitenaufrufe, nicht aber den Inhalt der ausgewählten Excel-Datei. Beim Export wird ausschließlich die leere Vorlage vom selben Server geladen.
 
-## Hosting
+Echte Mitgliederlisten und ausgefüllte Dokumente gehören niemals in dieses Repository. Die `.gitignore` schließt typische Datendateien aus; vor jedem Commit trotzdem prüfen. Tests verwenden künstliche Daten.
 
-GitHub Pages veröffentlicht den Ordner `docs` aus dem Branch `main`. Für dieses statische Grundgerüst ist kein eigener Build-Schritt nötig.
+## Entwicklung
 
-## Lokal ansehen
+Voraussetzungen: Node.js 24 oder neuer und Python 3 für den lokalen Webserver.
 
-Die Datei `docs/index.html` direkt im Browser öffnen. Die Startseite lädt keine externen Skripte, Schriftarten oder Stylesheets.
+```sh
+npm ci
+npm test
+npm run dev
+```
+
+Anschließend `http://127.0.0.1:4173` öffnen. Die Anwendung muss über HTTP laufen, nicht als `file://`-Datei, da sie JavaScript-Module und die Word-Vorlage lädt.
+
+`docs/` enthält die vollständige statische Anwendung. Änderungen auf `main` werden durch GitHub Pages veröffentlicht. Die Tests prüfen Import, Datumssysteme, Validierung, XML-Escaping, Formularfelder, Stadt-Zuordnung und längere Listen. Word-Testausgaben werden nur unter `/tmp/kjr-qa/` erzeugt.
+
+## Abhängigkeiten und Vorlage
+
+- SheetJS CE 0.20.3 (`docs/vendor/xlsx.mjs`, Apache-2.0).
+- fflate 0.8.3 (`docs/vendor/fflate.js`, MIT).
+- Lizenztexte liegen unter `docs/vendor/`. Beide Bibliotheken werden lokal ausgeliefert.
+- `npm run vendor` erneuert die gebündelten Bibliotheken aus den festgelegten Versionen.
+- `docs/teilnehmerliste.docx` ist die leere, bereitgestellte Originalvorlage. Autorenmetadaten und die externe Verknüpfung eines bereits eingebetteten Logos wurden entfernt. Logos, Formatierung und Formularfelder bleiben erhalten.
+
+Eine Ersatzvorlage kann mit `node scripts/prepare-template.mjs /pfad/zur/leeren-vorlage.docx` bereinigt werden. Vor Veröffentlichung Inhalt und Metadaten prüfen; eine andere Formularstruktur erfordert eine Anpassung von `docs/word.js` und neue Layoutprüfungen.
