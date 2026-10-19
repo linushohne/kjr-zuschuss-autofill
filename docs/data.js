@@ -39,6 +39,11 @@ export function formatDate(value) {
   return validDate(value) ? value.split('-').reverse().join('.') : '';
 }
 
+export function formatAddress(value) {
+  return String(value ?? '').replace(/\r\n?/g, '\n').trim()
+    .replace(/(^|[\s,;]+)(\d{5})[ \t]+(?=\p{L})/gu, (match, separator, postcode, offset) => `${offset === 0 ? '' : '\n'}${postcode} `);
+}
+
 export function isActive(value) {
   return !['nein', 'n', 'no', 'false', '0', 'inaktiv', 'ausgetreten', 'ehemalig'].includes(normalize(value));
 }
@@ -80,7 +85,7 @@ export function parseSheet(sheet, sheetName, date1904 = false) {
       first,
       last,
       birthday: parseBirthday(row[columns.birthday], date1904),
-      address: text('address').replace(/\r\n?/g, '\n'),
+      address: formatAddress(text('address')),
       group: text('group'),
       level: text('level'),
       active: isActive(row[columns.active]),

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as XLSX from '../docs/vendor/xlsx.mjs';
-import { ageAt, duplicatePeople, isActive, normalize, parseBirthday, parseSheet, personIssues, readWorkbook, validDate } from '../docs/data.js';
+import { ageAt, duplicatePeople, formatAddress, isActive, normalize, parseBirthday, parseSheet, personIssues, readWorkbook, validDate } from '../docs/data.js';
 import { fixturePeople, fixtureWorkbook } from '../scripts/qa-fixtures.mjs';
 
 test('Alter vor, am und nach Geburtstag', () => {
@@ -56,10 +56,23 @@ test('Nur benötigte Daten werden aus der Arbeitsmappe übernommen', () => {
   const sheets = readWorkbook(fixtureWorkbook());
   assert.equal(sheets[0].name, 'Stamm');
   assert.equal(sheets[0].people.length, 5);
-  assert.equal(sheets[1].people[0].address, 'Gruppenweg 1, 80331 München');
+  assert.equal(sheets[1].people[0].address, 'Gruppenweg 1\n80331 München');
   assert.match(sheets[2].error, /Spalten/);
   assert.equal(JSON.stringify(sheets).includes('NICHT_EXPORTIEREN'), false);
   assert.equal(sheets[0].people.find(person => person.first === 'Carla').active, false);
+});
+
+test('PLZ und Ort stehen auf einer eigenen Zeile', () => {
+  for (const separator of [', ', '; ', ' ', '\n', '\r\n']) {
+    const formatted = formatAddress(`Testweg 12${separator}01234 Beispielstadt`);
+    assert.equal(formatted, 'Testweg 12\n01234 Beispielstadt');
+    assert.equal(formatAddress(formatted), formatted);
+  }
+  assert.equal(formatAddress('Testweg 12\nHinterhaus, 2. Stock, 80331 München'), 'Testweg 12\nHinterhaus, 2. Stock\n80331 München');
+  assert.equal(formatAddress('80331 München'), '80331 München');
+  assert.equal(formatAddress('Testweg 12'), 'Testweg 12');
+  assert.equal(formatAddress('Testweg 123456 München'), 'Testweg 123456 München');
+  assert.equal(formatAddress(''), '');
 });
 
 test('Header können nach einer Titelzeile stehen', () => {

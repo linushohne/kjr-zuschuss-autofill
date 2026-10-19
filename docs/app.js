@@ -1,4 +1,4 @@
-import { ageAt, comparePeople, duplicatePeople, normalize, personIssues, readWorkbook, validDate } from './data.js';
+import { ageAt, comparePeople, duplicatePeople, formatAddress, normalize, personIssues, readWorkbook, validDate } from './data.js';
 import { createWord } from './word.js';
 
 const element = id => document.getElementById(id);
@@ -204,6 +204,7 @@ element('edit-form').addEventListener('submit', event => {
   event.preventDefault();
   if (!editing) return;
   for (const key of ['first', 'last', 'birthday', 'address']) editing[key] = element(`edit-${key}`).value.trim();
+  editing.address = formatAddress(editing.address);
   people.sort(comparePeople);
   element('edit-dialog').close();
   error();

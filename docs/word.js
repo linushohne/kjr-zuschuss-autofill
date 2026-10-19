@@ -1,5 +1,5 @@
 import { unzipSync, zipSync, strFromU8, strToU8 } from './vendor/fflate.js';
-import { ageAt, comparePeople, duplicatePeople, formatDate, personIssues, validDate } from './data.js';
+import { ageAt, comparePeople, duplicatePeople, formatAddress, formatDate, personIssues, validDate } from './data.js';
 
 const wordNamespace = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 const xmlNamespace = 'http://www.w3.org/XML/1998/namespace';
@@ -60,7 +60,7 @@ function setField(container, value, fieldName) {
   }
 }
 
-function prepareTable(table, people, start) {
+function prepareTable(table, people, start, rowCount) {
   const rows = children(table, 'tr');
   const header = rows[0];
   const sample = rows[1].cloneNode(true);
@@ -68,14 +68,16 @@ function prepareTable(table, people, start) {
   if (!headerProperties) headerProperties = header.insertBefore(table.ownerDocument.createElementNS(wordNamespace, 'w:trPr'), header.firstChild);
   addProperty(headerProperties, 'tblHeader');
   for (const row of rows.slice(1)) table.removeChild(row);
-  for (let index = 0; index < people.length; index += 1) {
+  for (let index = 0; index < rowCount; index += 1) {
     const row = sample.cloneNode(true);
     let properties = children(row, 'trPr')[0];
     if (!properties) properties = row.insertBefore(table.ownerDocument.createElementNS(wordNamespace, 'w:trPr'), row.firstChild);
     addProperty(properties, 'cantSplit');
     const person = people[index];
     const number = index + 1;
-    const values = [String(number), `${person.last}, ${person.first}`, person.address, 'X', '', '', String(ageAt(person.birthday, start)), ''];
+    const values = person
+      ? [String(number), `${person.last}, ${person.first}`, formatAddress(person.address), 'X', '', '', String(ageAt(person.birthday, start)), '']
+      : Array(8).fill('');
     for (const [cellIndex, cell] of children(row, 'tc').entries()) {
       setField(cell, values[cellIndex], `person_${number}_${cellIndex}`);
     }
@@ -101,13 +103,16 @@ export function createWord(template, people, trip, xml = { DOMParser, XMLSeriali
     setField(tripFields[index], value, ['fahrt_titel', 'fahrt_ort', 'fahrt_zeitraum'][index]);
   }
   const firstTable = tables[3];
+  const firstRows = children(firstTable, 'tr').length - 1;
+  const continuationRows = children(tables[4], 'tr').length - 1;
+  const rowCount = firstRows + Math.ceil(Math.max(0, selected.length - firstRows) / continuationRows) * continuationRows;
   let next = firstTable.nextSibling;
   while (next && !(next.nodeType === 1 && next.localName === 'sectPr')) {
     const following = next.nextSibling;
     body.removeChild(next);
     next = following;
   }
-  prepareTable(firstTable, selected, trip.start);
+  prepareTable(firstTable, selected, trip.start, rowCount);
   const trailing = document.createElementNS(wordNamespace, 'w:p');
   const trailingProperties = addProperty(trailing, 'pPr');
   const trailingSpacing = addProperty(trailingProperties, 'spacing');
