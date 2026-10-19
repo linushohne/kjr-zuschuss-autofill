@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Projektstart für ein lokales Browser-Tool zum Ausfüllen von KJR-Teilnehmerlisten.">
+    <meta name="referrer" content="no-referrer">
+    <title>KJR Zuschuss Autofill</title>
+    <style>
+      :root { font-family: system-ui, sans-serif; color: #183d32; background: #f5f6f0; color-scheme: light; }
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 56px 24px; }
+      main { max-width: 760px; margin: 0 auto; }
+      .eyebrow { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+      h1 { font-size: clamp(2rem, 7vw, 3.5rem); line-height: 1.1; margin: 24px 0; }
+      p, li { line-height: 1.65; }
+      .intro { max-width: 600px; font-size: 1.2rem; }
+      section { margin-top: 32px; padding: 24px; border: 1px solid #ced8cc; border-radius: 16px; background: #fff; }
+      h2 { margin-top: 0; font-size: 1.2rem; }
+      ol { padding-left: 24px; }
+      .status { display: inline-block; padding: 6px 12px; border-radius: 24px; background: #e9eee1; font-size: 0.9rem; }
+      footer { margin-top: 32px; color: #4b6258; font-size: 0.9rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">Für Pfadfinderfahrten und Freizeiten</p>
+      <h1>Weniger abtippen.<br>Mehr Zeit fürs Lager.</h1>
+      <p class="intro">KJR Zuschuss Autofill soll eure Excel-Mitgliederliste in eine ausgefüllte Word-Teilnehmerliste verwandeln – direkt auf eurem Gerät.</p>
+      <p class="status">Projektgerüst · Funktionen noch in Entwicklung</p>
+      <section aria-labelledby="workflow-title">
+        <h2 id="workflow-title">Der geplante Ablauf</h2>
+        <ol>
+          <li>Excel-Datei auswählen.</li>
+          <li>Kinder suchen, nach Sippe filtern und auswählen.</li>
+          <li>Startdatum eingeben und Angaben prüfen.</li>
+          <li>Word-Liste herunterladen und unterschreiben lassen.</li>
+        </ol>
+        <p>Das Startdatum ist Pflicht, damit das Alter bei Fahrtbeginn stimmt. Titel, Ort und Enddatum sind optional. Der Landkreis-Eintrag ist immer „Stadt“.</p>
+      </section>
+      <section aria-labelledby="privacy-title">
+        <h2 id="privacy-title">Kinderdaten bleiben lokal</h2>
+        <p>Die geplante Verarbeitung findet ausschließlich im Browser statt – ohne Übertragung der Excel-Datei, ohne Tracking und ohne dauerhafte Speicherung. Diese Startseite bietet noch keinen Dateiimport an.</p>
+      </section>
+      <footer>KJR Zuschuss Autofill · Statische Projektstartseite</footer>
+    </main>
+  </body>
+</html>
