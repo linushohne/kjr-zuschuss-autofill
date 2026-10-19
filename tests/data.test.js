@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as XLSX from '../docs/vendor/xlsx.mjs';
-import { ageAt, duplicatePeople, eligibleForList, formatAddress, isActive, normalize, parseBirthday, parseSheet, personIssues, readWorkbook, validDate } from '../docs/data.js';
+import { ageAt, duplicatePeople, eligibleForList, formatAddress, isActive, normalize, parseBirthday, parseSheet, personIssues, readWorkbook, sortPeople, validDate } from '../docs/data.js';
 import { fixturePeople, fixtureWorkbook } from '../scripts/qa-fixtures.mjs';
 
 test('Alter vor, am und nach Geburtstag', () => {
@@ -49,6 +49,35 @@ test('Aktiv-Status erkennt explizite Inaktiv-Werte', () => {
 test('Suche erkennt Umlaute und erhält nichtlateinische Namen', () => {
   assert.equal(normalize('Müller Straße'), 'mullerstrasse');
   assert.equal(normalize('李'), '李');
+});
+
+test('Name, Sippe und Adresse lassen sich in beide Richtungen sortieren', () => {
+  const people = [
+    { id: '1', first: 'Ben', last: 'Zeller', group: 'Füchse', address: 'Testweg 10\n80331 München' },
+    { id: '2', first: 'Anna', last: 'Äbel', group: 'Eulen', address: 'Testweg 2\n80331 München' },
+    { id: '3', first: 'Carla', last: 'Äbel', group: '', address: '' },
+  ];
+  const ids = (column, direction) => sortPeople(people, column, direction).map(person => person.id);
+  assert.deepEqual(ids('name', 'ascending'), ['2', '3', '1']);
+  assert.deepEqual(ids('name', 'descending'), ['1', '3', '2']);
+  for (const column of ['group', 'address']) {
+    assert.deepEqual(ids(column, 'ascending'), ['2', '1', '3']);
+    assert.deepEqual(ids(column, 'descending'), ['1', '2', '3']);
+  }
+  assert.deepEqual(people.map(person => person.id), ['1', '2', '3']);
+});
+
+test('Alter wird numerisch sortiert, fehlende Angaben bleiben hinten', () => {
+  const people = [
+    { first: 'Anna', last: 'A', birthday: '2014-10-20' },
+    { first: 'Ben', last: 'B', birthday: '2017-10-19' },
+    { first: 'Carla', last: 'C', birthday: '' },
+    { first: 'Dana', last: 'D', birthday: '2027-01-01' },
+  ];
+  const names = (direction, start = '2026-10-19') => sortPeople(people, 'age', direction, start).map(person => person.first);
+  assert.deepEqual(names('ascending'), ['Ben', 'Anna', 'Carla', 'Dana']);
+  assert.deepEqual(names('descending'), ['Anna', 'Ben', 'Carla', 'Dana']);
+  assert.deepEqual(names('ascending', ''), ['Anna', 'Ben', 'Carla', 'Dana']);
 });
 
 test('Klassische XLS-Dateien werden ebenfalls eingelesen', () => {

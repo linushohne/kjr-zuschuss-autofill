@@ -54,7 +54,11 @@
           <table>
             <thead><tr>
               <th class="select-cell"><input id="select-all" type="checkbox" aria-label="Alle angezeigten Personen auswählen"></th>
-              <th>Name</th><th>Sippe</th><th>Alter</th><th>Adresse</th><th aria-label="Bearbeiten"></th>
+              <th scope="col" aria-sort="ascending"><button type="button" class="sort-button" data-sort="name">Name<span aria-hidden="true"></span></button></th>
+              <th scope="col" aria-sort="none"><button type="button" class="sort-button" data-sort="group">Sippe<span aria-hidden="true"></span></button></th>
+              <th scope="col" aria-sort="none"><button type="button" class="sort-button" data-sort="age">Alter<span aria-hidden="true"></span></button></th>
+              <th scope="col" aria-sort="none"><button type="button" class="sort-button" data-sort="address">Adresse<span aria-hidden="true"></span></button></th>
+              <th aria-label="Bearbeiten"></th>
             </tr></thead>
             <tbody id="rows"></tbody>
           </table>

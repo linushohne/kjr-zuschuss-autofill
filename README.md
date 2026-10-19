@@ -9,6 +9,7 @@ Die Anwendung läuft auf [GitHub Pages](https://linushohne.github.io/kjr-zuschus
 - Excel-Import (`.xlsx` und `.xls`), ausschließlich aus dem Blatt „Stamm“.
 - Erkennung der Spaltenüberschriften, auch bei unterschiedlicher Spaltenreihenfolge.
 - Suche, Filter nach Sippe und Stufe sowie Auswahl aller angezeigten Personen.
+- Anzeige nach Name, Sippe, Alter oder Adresse sortieren: Spaltenüberschrift anklicken, erneut klicken für die Gegenrichtung. Der Word-Export bleibt alphabetisch.
 - Inaktive Mitglieder sind standardmäßig ausgeblendet. Unbekannte oder leere Aktiv-Werte gelten als aktiv.
 - Fehlende Namen, Geburtstage und Adressen lassen sich für den aktuellen Export bearbeiten. Die Quelldatei bleibt unverändert.
 - Alter zum verpflichtenden Fahrtbeginn; Titel, Ort und Fahrtende sind optional.

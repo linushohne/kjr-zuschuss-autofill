@@ -1,4 +1,4 @@
-import { ageAt, comparePeople, duplicatePeople, eligibleForList, formatAddress, normalize, personIssues, readWorkbook, validDate } from './data.js';
+import { ageAt, comparePeople, duplicatePeople, eligibleForList, formatAddress, normalize, personIssues, readWorkbook, sortPeople, validDate } from './data.js';
 import { createWord } from './word.js';
 
 const element = id => document.getElementById(id);
@@ -8,6 +8,8 @@ let visible = [];
 let editing;
 let revision = 0;
 let exporting = false;
+let sortColumn = 'name';
+let sortDirection = 'ascending';
 
 function trip() {
   return { ...Object.fromEntries(['start', 'end', 'title', 'location'].map(key => [key, element(key).value.trim()])), kind: document.querySelector('input[name="kind"]:checked').value };
@@ -70,6 +72,10 @@ function render() {
     (!element('level').value || person.level === element('level').value) &&
     (!query || normalize(`${person.first} ${person.last} ${person.last} ${person.first} ${person.address}`).includes(query))
   );
+  visible = sortPeople(visible, sortColumn, sortDirection, values.start);
+  for (const button of document.querySelectorAll('[data-sort]')) {
+    button.closest('th').setAttribute('aria-sort', button.dataset.sort === sortColumn ? sortDirection : 'none');
+  }
   const fragment = document.createDocumentFragment();
   for (const person of visible) {
     const row = document.createElement('tr');
@@ -129,6 +135,8 @@ function initializePeople() {
 }
 
 function clearData() {
+  sortColumn = 'name';
+  sortDirection = 'ascending';
   people = [];
   visible = [];
   selected = new Set();
@@ -178,6 +186,11 @@ element('reset').addEventListener('click', () => {
   document.querySelector('details').open = false;
 });
 
+for (const button of document.querySelectorAll('[data-sort]')) button.addEventListener('click', () => {
+  sortDirection = sortColumn === button.dataset.sort && sortDirection === 'ascending' ? 'descending' : 'ascending';
+  sortColumn = button.dataset.sort;
+  render();
+});
 for (const input of document.querySelectorAll('input[name="kind"]')) input.addEventListener('change', () => {
   revision += 1;
   selected.clear();

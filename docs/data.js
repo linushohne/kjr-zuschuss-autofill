@@ -102,6 +102,27 @@ export function comparePeople(left, right) {
   return left.last.localeCompare(right.last, 'de') || left.first.localeCompare(right.first, 'de');
 }
 
+export function sortPeople(people, column = 'name', direction = 'ascending', start = '') {
+  const multiplier = direction === 'descending' ? -1 : 1;
+  const collator = new Intl.Collator('de', { numeric: true, sensitivity: 'base' });
+  const value = person => {
+    if (column === 'age') {
+      const age = ageAt(person.birthday, start);
+      return age !== null && age >= 0 ? age : null;
+    }
+    return String(person[column] ?? '').replace(/\s+/g, ' ').trim() || null;
+  };
+  return [...people].sort((left, right) => {
+    if (column === 'name') return multiplier * comparePeople(left, right);
+    const leftValue = value(left);
+    const rightValue = value(right);
+    if (leftValue === null && rightValue !== null) return 1;
+    if (rightValue === null && leftValue !== null) return -1;
+    const comparison = leftValue === null ? 0 : column === 'age' ? leftValue - rightValue : collator.compare(leftValue, rightValue);
+    return multiplier * comparison || comparePeople(left, right);
+  });
+}
+
 export function readWorkbook(buffer) {
   const bytes = new Uint8Array(buffer);
   if (bytes.length > 10 * 1024 * 1024) throw new Error('Bitte eine Datei unter 10 MB auswählen.');

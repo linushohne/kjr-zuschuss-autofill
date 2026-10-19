@@ -40,6 +40,11 @@ summary { cursor: pointer; font-size: 13px; color: #475c4b; padding: 10px 0; }
 .table-wrap { overflow-x: auto; border: 1px solid #dce0d9; border-radius: 5px; background: #fff; }
 table { border-collapse: collapse; width: 100%; text-align: left; }
 th { font-size: 12px; font-weight: 500; color: #646b64; background: #f1f3ee; }
+.sort-button { border: 0; padding: 0; min-height: 24px; border-radius: 0; background: transparent; gap: 6px; font: inherit; white-space: nowrap; }
+.sort-button:hover { background: transparent; color: #28513a; }
+.sort-button span::after { content: '↕'; color: #8c9388; }
+th[aria-sort="ascending"] .sort-button span::after { content: '↑'; color: #28513a; }
+th[aria-sort="descending"] .sort-button span::after { content: '↓'; color: #28513a; }
 td, th { padding: 13px 12px; border-bottom: 1px solid #e8ebe5; }
 tbody tr:last-child td { border-bottom: 0; }
 tbody tr:has(input:checked) { background: #f2f7ef; }
