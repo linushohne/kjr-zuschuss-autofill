@@ -2,7 +2,7 @@
 
 Excel auswählen, Teilnehmende markieren, Fahrtbeginn eintragen, Word-Liste herunterladen.
 
-Die Anwendung läuft auf [GitHub Pages](https://linushohne.github.io/kjr-zuschuss-autofill/). Keine Anmeldung, kein Backend und kein Build-Schritt.
+Die Anwendung läuft auf [GitHub Pages](https://zuschuss.linushoehne.de/). Keine Anmeldung, kein Backend und kein Build-Schritt.
 
 ## Funktionen
 
